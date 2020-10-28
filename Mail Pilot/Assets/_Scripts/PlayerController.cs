@@ -13,13 +13,19 @@ public class PlayerController : MonoBehaviour
     public Transform bulletSpawn;
     public GameObject bullet;
 
+	public int MaxBullets = 10;
+
     // private instance variables
     private AudioSource _thunderSound;
     private AudioSource _yaySound;
     private AudioSource _bulletSound;
     private Rigidbody2D _rigidbody2D;
 
-    private bool isFiring = false;
+	//private BulletPoolManager bp_manager;
+	//public BulletFactoryBehavior bullet_factory;
+
+	private bool isFiring = false;
+	private bool wasFiring = false;
 
     //TODO: create a reference to the BulletPoolManager here
 
@@ -31,8 +37,12 @@ public class PlayerController : MonoBehaviour
         _bulletSound = GetComponent<AudioSource>();
         _rigidbody2D = GetComponent<Rigidbody2D>();
 
+		//bp_manager = GameObject.FindObjectOfType<BulletPoolManager>();
+
         // Shoots bullet on a delay if button is pressed
         StartCoroutine(FireBullet());
+
+		BulletPoolManager.Instance.SetMaxBullets(MaxBullets);
     }
 
     // Update is called once per frame
@@ -85,10 +95,16 @@ public class PlayerController : MonoBehaviour
         if (Input.GetAxis("Jump") > 0)
         {
             isFiring = true;
+			wasFiring = true;
         }
         else
         {
             isFiring = false;
+			if (wasFiring)
+			{
+				wasFiring = false;
+				BulletPoolManager.Instance.ToggleBulletType();
+			}
         }
     }
 
@@ -117,11 +133,15 @@ public class PlayerController : MonoBehaviour
             {
                 _bulletSound.Play();
 
-                //TODO: this code needs to change to user the BulletPoolManager's
-                //TODO: GetBullet function which will return a reference to a 
-                //TODO: bullet object. 
-                //TODO: Ensure you position the new bullet at the bulletSpawn position
-                Instantiate(bullet, bulletSpawn.position, Quaternion.identity);
+				//TODO: this code needs to change to user the BulletPoolManager's
+				//TODO: GetBullet function which will return a reference to a 
+				//TODO: bullet object. 
+				//TODO: Ensure you position the new bullet at the bulletSpawn position
+
+				GameObject new_bul = BulletPoolManager.Instance.GetBullet();
+				new_bul.transform.position = bulletSpawn.position;
+				new_bul.transform.rotation = Quaternion.identity;
+				//Instantiate(bullet, bulletSpawn.position, Quaternion.identity);
             }
 
         }
